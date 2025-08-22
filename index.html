@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory challenge!</title>
+  <meta name="theme-color" content="#192b37">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap">
+  <style>
+    :root{ --bg:#192b37; --accent:#ff5640; --accent2:#ffa394; --panel:#0f1b23; --panel2:#122430; --good:#22c55e; --bad:#ef4444; --text:#e5e7eb; --muted:#a3aed0; --yellow:#f59e0b; --red:#ef4444; --green:#22c55e; }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text);
+          display:flex; min-height:100dvh; align-items:center; justify-content:center; overflow-x:hidden; }
+    body::before{ content:""; position:fixed; inset:-20%;
+      background: radial-gradient(60vw 60vw at 10% 20%, rgba(255,86,64,.07), transparent 60%),
+                  radial-gradient(70vw 70vw at 90% 10%, rgba(255,163,148,.05), transparent 60%),
+                  radial-gradient(50vw 50vw at 30% 90%, rgba(255,86,64,.04), transparent 60%);
+      filter: blur(30px); animation: drift 40s linear infinite alternate; z-index:-1; }
+    @keyframes drift{ 0%{transform:translate3d(0,0,0) scale(1)} 100%{transform:translate3d(-2%,2%,0) scale(1.03)} }
+    .wrap{width:min(1100px,95vw);}
+    .menu-card{ width:min(440px,92vw); border-radius:18px; padding:16px 14px 20px;
+      background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+      border:1px solid rgba(255,255,255,.08); box-shadow:0 18px 40px rgba(0,0,0,.4) }
+    .menu-title{ display:flex; align-items:center; gap:10px; margin:2px 6px 12px; font-size:20px; font-weight:800; letter-spacing:.4px; text-shadow:0 1px 0 rgba(0,0,0,.25); font-family:"Chakra Petch", system-ui, sans-serif }
+    .menu-title .logo{ width:36px; height:36px; border-radius:10px; background:#ff5640; display:inline-block; }
+    .menu-list{ display:flex; flex-direction:column; gap:10px; padding:4px }
+    .menu-btn{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.1);
+      background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 85%, #fff 0%), color-mix(in srgb, var(--accent2) 70%, #fff 0%));
+      color:#0b1020; font-weight:800; letter-spacing:.2px; cursor:pointer; outline:none; box-shadow:0 6px 0 rgba(0,0,0,.25), 0 10px 22px rgba(0,0,0,.35);
+      transform:translateY(0); transition:transform .08s ease, box-shadow .12s ease, filter .12s ease; font-family:"Chakra Petch", system-ui, sans-serif }
+    .menu-btn:hover{ transform:translateY(-1px); filter:brightness(1.02) }
+    .menu-btn:active{ transform:translateY(1px); box-shadow:0 4px 0 rgba(0,0,0,.25) inset }
+    .menu-left{ display:flex; align-items:center; gap:10px }
+    .menu-icon{ width:28px; height:28px; border-radius:10px; background:#0b1020; color:var(--accent); display:grid; place-items:center; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12) }
+    .menu-chevron{ opacity:.75 }
+    .panel{ background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%); padding:16px; border-radius:14px; border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 30px rgba(0,0,0,.35) }
+    .controls{ display:grid; grid-template-columns: repeat(2, minmax(160px,1fr)); gap:10px; background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+      padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:14px; box-shadow: 0 10px 30px rgba(0,0,0,.35) }
+    .control{ display:flex; flex-direction:column; gap:6px }
+    .control label{ font-size:12px; color:var(--muted) }
+    select, button, input[type="text"]{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#0f1530; color:var(--text);
+      outline:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.04) }
+    .primary{ background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0b1020; font-weight:800; border:none; font-family:"Chakra Petch", system-ui, sans-serif }
+    .ghost{ background:transparent; border:1px solid rgba(255,255,255,.2); color:var(--text); border-radius:10px; padding:10px 12px }
+    .pill{ border-radius:9999px; padding:6px 10px; font-size:12px }
+    .hud{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 }
+    .hud .lives{ display:flex; align-items:center; gap:4px; background:#0f1530; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:6px 10px; font-size:12px }
+    .hud .score{ display:flex; align-items:center; gap:6px; background:#0f1530; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:6px 10px; font-size:12px }
+    .hud .round{ display:flex; align-items:center; gap:6px; background:#0f1530; border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:6px 10px; font-size:12px }
+    .hud .mode{ display:flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-size:12px; border:1px solid rgba(255,255,255,.12); background:#0f1530 }
+    .mode.easy{ border-color:var(--green); color:var(--green) } .mode.medium{ border-color:var(--yellow); color:var(--yellow) } .mode.hard{ border-color:var(--red); color:var(--red) }
+    .actions{ margin-left:auto; display:flex; gap:6px; align-items:center }
+    .progress{ height:6px; background:#0a0f25; border:1px solid rgba(255,255,255,.1); border-radius:999px; overflow:hidden; margin:6px 0 2px }
+    .progress>span{ display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .1s ease }
+    .grid-wrap{ display:grid; place-items:center; margin-top:8px }
+    .grid{ display:grid; gap:8px; background:#0f1530; padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 35px rgba(0,0,0,.45) }
+    .cell{ width:80px; aspect-ratio:1; border-radius:12px; background:#1a2746; border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04); transition:transform .1s ease, background .12s ease, box-shadow .12s ease, filter .12s ease;
+      cursor:pointer; position:relative; overflow:hidden; transform-style:preserve-3d; perspective:800px; color:#9fb4ff; font-weight:700 }
+    .cell::after{ content:""; position:absolute; inset:0; opacity:0; background:radial-gradient(200px 200px at 50% 50%, color-mix(in srgb, var(--accent) 70%, white 10%) 0%, transparent 60%); transition:opacity .12s ease }
+    .cell:hover{ transform:translateY(-1px) }
+    .cell.active{ background:color-mix(in srgb, var(--accent) 80%, #131a3b 20%); box-shadow:0 0 22px color-mix(in srgb, var(--accent) 50%, #000 50%); transform:rotateY(10deg) translateY(-2px) }
+    .cell.active::after{ opacity:.55 }
+    .cell.correct{ outline:2px solid var(--good) }
+    .cell.wrong{ outline:2px solid var(--bad) }
+    .msg{ margin-top:10px; color:#c7d2fe; min-height:22px }
+    .footer{ opacity:.8; font-size:12px; margin-top:10px }
+    .spacer{ height:8px }
+    @media (max-width:750px){ .cell{ width:64px } }
+    dialog{ border:none; border-radius:16px; padding:0; width:min(520px,94vw); background:#0f1530; color:var(--text); box-shadow:0 20px 60px rgba(0,0,0,.6) }
+    .dlg{ padding:16px } .dlg h3{ margin:0 0 8px 0 } .dlg p{ margin:0 10px 12px 0; color:#a3aed0 } .dlg .row{ display:flex; gap:8px; flex-wrap:wrap }
+    @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(4px)} 75%{transform:translateX(-4px)} } .shake{ animation:shake 180ms ease }
+    .toast{ position:fixed; left:50%; top:10%; transform:translateX(-50%); background:#0f1530; border:1px solid rgba(255,255,255,.15);
+      padding:10px 14px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); opacity:0; pointer-events:none; color:#e5e7eb; font-weight:700; font-family:"Chakra Petch", system-ui, sans-serif }
+    .cb-high .cell.active{ background:#ffd400; box-shadow:0 0 22px #ffd400 }
+    @media (prefers-reduced-motion: reduce){ .cell, .menu-btn { transition: none !important; animation: none !important; } body::before { display:none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section id="menuUI" class="menu-card" style="display:block;">
+      <div class="menu-title"><span class="logo"></span> <span id="titleText" data-i18n="title">Memory challenge!</span></div>
+      <div class="menu-list">
+        <button class="menu-btn" id="btnStart"><span class="menu-left"><span class="menu-icon">▶</span> <span data-i18n="start">Start</span></span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnOptions"><span class="menu-left"><span class="menu-icon">⚙</span> <span data-i18n="options">Options</span></span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnLeaderboard"><span class="menu-left"><span class="menu-icon">🏆</span> <span data-i18n="leaderboard">Leaderboard</span></span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnInstructions"><span class="menu-left"><span class="menu-icon">?</span> <span data-i18n="instructions">Instructions</span></span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnQuit"><span class="menu-left"><span class="menu-icon">✖</span> <span data-i18n="quit">Quit</span></span><span class="menu-chevron">›</span></button>
+      </div>
+    </section>
+
+    <section id="optionsUI" class="panel" style="display:none; width:min(820px,95vw);">
+      <h2 style="margin:0 0 10px 0; font-family:'Chakra Petch',system-ui,sans-serif;" data-i18n="options">Options</h2>
+      <div class="controls" style="margin-bottom:12px;">
+        <div class="control"><label for="gridSize" data-i18n="gridSize">Grid size</label>
+          <select id="gridSize">
+            <option value="3" data-i18n="gridEasy">Easy 3x3</option>
+            <option value="4" data-i18n="gridMed">Medium 4x4</option>
+            <option value="5" data-i18n="gridHard">Hard 5x5</option>
+            <option value="6" data-i18n="gridExp">Expert 6x6</option>
+          </select>
+        </div>
+        <div class="control"><label for="difficulty" data-i18n="seqGrowth">Sequence growth</label>
+          <select id="difficulty">
+            <option value="beginner" data-i18n="beginner">Beginner (start 2, +1)</option>
+            <option value="intermediate" data-i18n="intermediate">Intermediate (start 3, +2)</option>
+            <option value="advanced" data-i18n="advanced">Advanced (start 4, +3)</option>
+            <option value="insane" data-i18n="insane">Insane (random +2 to +4)</option>
+          </select>
+        </div>
+        <div class="control"><label for="speed" data-i18n="displaySpeed">Display speed per tile</label>
+          <select id="speed">
+            <option value="1500" data-i18n="slow">Slow 1.5s</option>
+            <option value="1000" data-i18n="normal">Normal 1s</option>
+            <option value="700" data-i18n="fast">Fast 0.7s</option>
+            <option value="400" data-i18n="extreme">Extreme 0.4s</option>
+          </select>
+        </div>
+        <div class="control"><label for="memorize" data-i18n="memorization">Memorization pause</label>
+          <select id="memorize">
+            <option value="3000" data-i18n="memEasy">Easy 3s</option>
+            <option value="2000" data-i18n="memMed">Medium 2s</option>
+            <option value="1000" data-i18n="memHard">Hard 1s</option>
+            <option value="250" selected data-i18n="memUltra">Ultra short 0.25s</option>
+          </select>
+        </div>
+        <div class="control"><label for="livesMode" data-i18n="livesMode">Lives mode</label>
+          <select id="livesMode">
+            <option value="3" selected data-i18n="standardLives">Standard 3 lives</option>
+            <option value="1" data-i18n="hardcore">Hardcore 1 life</option>
+            <option value="endless" data-i18n="endless">Endless (until mistake)</option>
+          </select>
+        </div>
+        <div class="control"><label for="dailyMode" data-i18n="dailyChallenge">Daily challenge</label>
+          <select id="dailyMode"><option value="0" selected data-i18n="off">Off</option><option value="1" data-i18n="on">On</option></select>
+        </div>
+        <div class="control"><label for="cbMode" data-i18n="cbMode">Color blind mode</label>
+          <select id="cbMode"><option value="0" selected data-i18n="off">Off</option><option value="1" data-i18n="highContrast">High contrast</option></select>
+        </div>
+        <div class="control"><label for="themeSel" data-i18n="theme">Theme</label>
+          <select id="themeSel">
+            <option value="classic" selected data-i18n="classic">Classic</option>
+            <option value="neon" data-i18n="neon">Neon</option>
+            <option value="sunset" data-i18n="sunset">Sunset</option>
+            <option value="mono" data-i18n="mono">Mono</option>
+          </select>
+        </div>
+        <div class="control"><label for="langSel" data-i18n="language">Language</label>
+          <select id="langSel">
+            <option value="en-UK">English (UK)</option>
+            <option value="ro-RO">Română</option>
+            <option value="sr-RS">Srpski</option>
+            <option value="es-ES">Español</option>
+            <option value="bg-BG">Български</option>
+          </select>
+        </div>
+        <div class="control"><label>&nbsp;</label><button id="btnSaveOptions" class="primary" data-i18n="save">Save</button></div>
+        <div class="control"><label>&nbsp;</label><button id="btnOptionsBack" class="ghost" data-i18n="backMenu">Back to menu</button></div>
+      </div>
+      <div style="font-size:12px;opacity:.85" data-i18n="savedForNext">Selections are saved for the next game.</div>
+    </section>
+
+    <section id="leaderboardUI" class="panel" style="display:none; width:min(760px,95vw);">
+      <h2 style="margin:0 0 10px 0; font-family:'Chakra Petch',system-ui,sans-serif;" data-i18n="leaderboard">Leaderboard</h2>
+      <div class="hud" style="margin:0 0 8px 0;">
+        <button id="clearLb" class="ghost" title="Clear all scores" data-i18n="clear">Clear</button>
+        <span style="flex:1"></span>
+        <button id="btnLeaderboardBack" class="ghost" data-i18n="backMenu">Back to menu</button>
+      </div>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead><tr>
+          <th style="text-align:left">#</th>
+          <th style="text-align:left" data-i18n="name">Name</th>
+          <th style="text-align:left" data-i18n="score">Score</th>
+          <th style="text-align:left" data-i18n="grid">Grid</th>
+          <th style="text-align:left" data-i18n="mode">Mode</th>
+          <th style="text-align:left" data-i18n="date">Date</th>
+        </tr></thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </section>
+
+    <section id="instructionsUI" class="panel" style="display:none; width:min(640px,95vw);">
+      <h2 style="margin:0 0 10px 0; font-family:'Chakra Petch',system-ui,sans-serif;" data-i18n="instructions">Instructions</h2>
+      <p style="margin:0 0 10px 0; color:#a3aed0;" id="howToText">
+        <span data-i18n="inst1">1) Watch the highlighted squares in order.</span><br/>
+        <span data-i18n="inst2">2) After the pause, click the same squares in the same order.</span><br/>
+        <span data-i18n="inst3">3) Each round increases the sequence length.</span><br/>
+        <span data-i18n="inst4">4) A mistake costs a life, unless Endless is selected.</span><br/>
+        <span data-i18n="inst5">On 3×3 (9 fields) you can also use your keyboard numpad: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.</span>
+      </p>
+      <div><button id="btnInstructionsBack" class="ghost" data-i18n="backMenu">Back to menu</button></div>
+    </section>
+
+    <section id="gameUI" style="display:none;">
+      <div class="panel" style="width:min(980px,95vw);">
+        <div class="hud">
+          <div class="round" id="round"><span>🔄</span> <strong>1</strong></div>
+          <div class="score" id="score"><span>⭐</span> <strong>0</strong></div>
+          <div class="lives" id="lives"><span>❤️</span> <strong>3</strong></div>
+          <div class="mode" id="modeBadge">Easy</div>
+          <div class="actions">
+            <button id="hintBtn" class="ghost pill" title="Reveal next step" data-i18n="hint">Hint</button>
+            <button id="pauseBtn" class="ghost pill" data-i18n="pause">Pause</button>
+            <button id="restartBtn" class="ghost pill" data-i18n="restart">Restart</button>
+            <button id="btnGameBack" class="ghost pill" data-i18n="menu">Menu</button>
+          </div>
+        </div>
+        <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+        <section class="grid-wrap">
+          <div id="grid" class="grid" role="grid" aria-label="Game grid"></div>
+          <div class="msg" id="message"></div>
+          <div class="footer" id="tipText">Tip: press Start to show the sequence. Wait for the pause, then repeat by clicking tiles in order.</div>
+        </section>
+        <div class="spacer"></div>
+        <div class="hud"><button id="startBtn" class="primary" data-i18n="startGame">Start game</button></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <dialog id="saveDialog">
+    <form method="dialog" class="dlg" id="saveForm">
+      <h3 data-i18n="saveScore">Save your score</h3>
+      <p><span data-i18n="yourScore">Your score</span>: <strong id="dlgScore">0</strong></p>
+      <label for="playerName" data-i18n="name">Name</label>
+      <div class="row">
+        <input type="text" id="playerName" name="playerName" placeholder="Type your name" required maxlength="24" />
+        <button class="primary" value="save" data-i18n="save">Save</button>
+        <button class="ghost" value="cancel" data-i18n="skip">Skip</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="gameOverDialog">
+    <form method="dialog" class="dlg">
+      <h3 data-i18n="gameOver">Game over</h3>
+      <p id="statsLine">Round 0 · Best combo 0 · Hints used 0</p>
+      <div class="row">
+        <button class="primary" id="continueBtn" value="continue" data-i18n="continueOnce">Continue (‑50 pts)</button>
+        <button class="ghost" id="replayBtn" value="replay" data-i18n="replaySeq">Show last sequence</button>
+        <button class="ghost" id="goMenuBtn" value="menu" data-i18n="menu">Menu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+  (function(){
+    try{
+      // Safe storage
+      const storage = {
+        get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+        set(k,v){ try { localStorage.setItem(k,v); } catch {} }
+      };
+
+      // Strings
+      const STR = {
+        "en-UK": {
+          title:"Memory challenge!", start:"Start", options:"Options", leaderboard:"Leaderboard", instructions:"Instructions", quit:"Quit",
+          gridSize:"Grid size", seqGrowth:"Sequence growth", displaySpeed:"Display speed per tile", memorization:"Memorization pause",
+          livesMode:"Lives mode", dailyChallenge:"Daily challenge", cbMode:"Color blind mode", theme:"Theme", language:"Language",
+          gridEasy:"Easy 3x3", gridMed:"Medium 4x4", gridHard:"Hard 5x5", gridExp:"Expert 6x6",
+          beginner:"Beginner (start 2, +1)", intermediate:"Intermediate (start 3, +2)", advanced:"Advanced (start 4, +3)", insane:"Insane (random +2 to +4)",
+          slow:"Slow 1.5s", normal:"Normal 1s", fast:"Fast 0.7s", extreme:"Extreme 0.4s",
+          memEasy:"Easy 3s", memMed:"Medium 2s", memHard:"Hard 1s", memUltra:"Ultra short 0.25s",
+          standardLives:"Standard 3 lives", hardcore:"Hardcore 1 life", endless:"Endless (until mistake)",
+          off:"Off", on:"On", highContrast:"High contrast",
+          classic:"Classic", neon:"Neon", sunset:"Sunset", mono:"Mono",
+          backMenu:"Back to menu", savedForNext:"Selections are saved for the next game.", save:"Save",
+          name:"Name", score:"Score", grid:"Grid", mode:"Mode", date:"Date", clear:"Clear",
+          pause:"Pause", menu:"Menu", startGame:"Start game", restart:"Restart",
+          saveScore:"Save your score", yourScore:"Your score", skip:"Skip",
+          tip:"Tip: press Start to show the sequence. Wait for the pause, then repeat by clicking tiles in order.",
+          ready:"Ready", showing:"Showing sequence", yourTurn:"Your turn", tryAgain:"Try again", gameOver:"Game over", starting:"Starting",
+          hint:"Hint", hintUsed:"Hint used", noHints:"No hints left",
+          inst1:"1) Watch the highlighted squares in order.", inst2:"2) After the pause, click the same squares in the same order.", inst3:"3) Each round increases the sequence length.", inst4:"4) A mistake costs a life, unless Endless is selected.", inst5:"On 3×3 (9 fields) you can also use your keyboard numpad: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.",
+          continueOnce:"Continue (‑50 pts)", replaySeq:"Show last sequence"
+        },
+        "ro-RO": {
+          title:"Provocarea memoriei!", start:"Start", options:"Opțiuni", leaderboard:"Clasament", instructions:"Instrucțiuni", quit:"Ieșire",
+          gridSize:"Dimensiune grilă", seqGrowth:"Creștere secvență", displaySpeed:"Viteză pe celulă", memorization:"Pauză memorizare",
+          livesMode:"Vieți", dailyChallenge:"Provocarea zilnică", cbMode:"Mod daltonism", theme:"Temă", language:"Limbă",
+          gridEasy:"Ușor 3x3", gridMed:"Mediu 4x4", gridHard:"Greu 5x5", gridExp:"Expert 6x6",
+          beginner:"Începător (start 2, +1)", intermediate:"Intermediar (start 3, +2)", advanced:"Avansat (start 4, +3)", insane:"Insane (aleator +2 la +4)",
+          slow:"Lent 1.5s", normal:"Normal 1s", fast:"Rapid 0.7s", extreme:"Extrem 0.4s",
+          memEasy:"Ușor 3s", memMed:"Mediu 2s", memHard:"Greu 1s", memUltra:"Foarte scurt 0.25s",
+          standardLives:"Standard 3 vieți", hardcore:"Hardcore 1 viață", endless:"Fără sfârșit (până la greșeală)",
+          off:"Oprit", on:"Pornit", highContrast:"Contrast ridicat",
+          classic:"Clasic", neon:"Neon", sunset:"Apus", mono:"Mono",
+          backMenu:"Înapoi la meniu", savedForNext:"Selecțiile sunt salvate pentru jocul următor.", save:"Salvează",
+          name:"Nume", score:"Scor", grid:"Grilă", mode:"Mod", date:"Data", clear:"Șterge",
+          pause:"Pauză", menu:"Meniu", startGame:"Începe jocul", restart:"Repornește",
+          saveScore:"Salvează scorul", yourScore:"Scorul tău", skip:"Omite",
+          tip:"Sfăt: apasă Start pentru a arăta secvența. Repetă apăсând celulele în ordine.",
+          ready:"Pregătit", showing:"Se afișează secvența", yourTurn:"Este rândul tău", tryAgain:"Încearcă din nou", gameOver:"Sfârșitul jocului", starting:"Se pornește",
+          hint:"Indiciu", hintUsed:"Indiciu folosit", noHints:"Nu mai sunt indicii",
+          inst1:"1) Urmărește pătratele evidențiate în ordine.", inst2:"2) După pauză, apasă aceleași pătrate în aceeași ordine.", inst3:"3) Fiecare rundă mărește lungimea secvenței.", inst4:"4) O greșeală costă o viață (cu excepția modului Fără sfârșit).", inst5:"Pe 3×3 poți folosi și tastatura numerică: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.",
+          continueOnce:"Continuă (‑50 pct)", replaySeq:"Arată ultima secvență"
+        },
+        "sr-RS": {
+          title:"Изазов памћења!", start:"Почни", options:"Опције", leaderboard:"Листа најбољих", instructions:"Упутство", quit:"Излаз",
+          gridSize:"Величина мреже", seqGrowth:"Раст секвенце", displaySpeed:"Брзина по пољу", memorization:"Пауза за памћење",
+          livesMode:"Животи", dailyChallenge:"Дневни изазов", cbMode:"Режим за далтонисте", theme:"Тема", language:"Језик",
+          gridEasy:"Лако 3x3", gridMed:"Средње 4x4", gridHard:"Тешко 5x5", gridExp:"Експерт 6x6",
+          beginner:"Почетник (почиње 2, +1)", intermediate:"Средњи (почиње 3, +2)", advanced:"Напредни (почиње 4, +3)", insane:"Лудо (насумично +2 до +4)",
+          slow:"Споро 1.5s", normal:"Нормално 1s", fast:"Брзо 0.7s", extreme:"Екстремно 0.4s",
+          memEasy:"Лако 3s", memMed:"Средње 2s", memHard:"Тешко 1s", memUltra:"Врло кратко 0.25s",
+          standardLives:"Стандард 3 живота", hardcore:"Хардкор 1 живот", endless:"Без краја (до грешке)",
+          off:"Искључено", on:"Укључено", highContrast:"Висок контраст",
+          classic:"Класик", neon:"Неон", sunset:"Залазак", mono:"Моно",
+          backMenu:"Назад у мени", savedForNext:"Избори се чувају за следећу партију.", save:"Сачувај",
+          name:"Име", score:"Поени", grid:"Мрежа", mode:"Режим", date:"Датум", clear:"Обриши",
+          pause:"Пауза", menu:"Мени", startGame:"Почни игру", restart:"Рестартуј",
+          saveScore:"Сачувај поенe", yourScore:"Твој поен", skip:"Прескочи",
+          tip:"Савет: притисни Почни за приказ секвенце. Понављај кликом по редоследу.",
+          ready:"Спремно", showing:"Приказује се секвенца", yourTurn:"Твој ред", tryAgain:"Покушај поново", gameOver:"Крај игре", starting:"Почетак",
+          hint:"Савет", hintUsed:"Савет употребљен", noHints:"Нема више савета",
+          inst1:"1) Прати истакнута поља редом.", inst2:"2) После паузе, кликни иста поља истим редоследом.", inst3:"3) Свака рунда повећава секвенцу.", inst4:"4) Грешка кошта један живот (осим у бесконачном режиму).", inst5:"На мрежи 3×3 можеш да користиш нумпад: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.",
+          continueOnce:"Настави (‑50 поена)", replaySeq:"Прикажи последњу секвенцу"
+        },
+        "es-ES": {
+          title:"Desafío de memoria", start:"Comenzar", options:"Opciones", leaderboard:"Clasificación", instructions:"Instrucciones", quit:"Salir",
+          gridSize:"Tamaño de cuadrícula", seqGrowth:"Crecimiento de secuencia", displaySpeed:"Velocidad por casilla", memorization:"Pausa de memorización",
+          livesMode:"Vidas", dailyChallenge:"Desafío diario", cbMode:"Modo daltónicos", theme:"Tema", language:"Idioma",
+          gridEasy:"Fácil 3x3", gridMed:"Medio 4x4", gridHard:"Difícil 5x5", gridExp:"Experto 6x6",
+          beginner:"Principiante (empieza 2, +1)", intermediate:"Intermedio (empieza 3, +2)", advanced:"Avanzado (empieza 4, +3)", insane:"Insano (aleatorio +2 a +4)",
+          slow:"Lento 1.5s", normal:"Normal 1s", fast:"Rápido 0.7s", extreme:"Extremo 0.4s",
+          memEasy:"Fácil 3s", memMed:"Medio 2s", memHard:"Difícil 1s", memUltra:"Ultracorto 0.25s",
+          standardLives:"Estándar 3 vidas", hardcore:"Extremo 1 vida", endless:"Infinito (hasta un error)",
+          off:"Apagado", on:"Encendido", highContrast:"Alto contraste",
+          classic:"Clásico", neon:"Neón", sunset:"Atardecer", mono:"Mono",
+          backMenu:"Volver al menú", savedForNext:"Las selecciones se guardan para el próximo juego.", save:"Guardar",
+          name:"Nombre", score:"Puntuación", grid:"Cuadrícula", mode:"Modo", date:"Fecha", clear:"Borrar",
+          pause:"Pausa", menu:"Menú", startGame:"Iniciar juego", restart:"Reiniciar",
+          saveScore:"Guardar puntuación", yourScore:"Tu puntuación", skip:"Omitir",
+          tip:"Consejo: pulsa Comenzar para mostrar la secuencia. Repite pulsando las casillas en orden.",
+          ready:"Listo", showing:"Mostrando secuencia", yourTurn:"Tu turno", tryAgain:"Inténtalo de nuevo", gameOver:"Fin del juego", starting:"Iniciando",
+          hint:"Pista", hintUsed:"Pista usada", noHints:"No quedan pistas",
+          inst1:"1) Observa los cuadros iluminados en orden.", inst2:"2) Tras la pausa, pulsa los mismos cuadros en el mismo orden.", inst3:"3) Cada ronda aumenta la longitud de la secuencia.", inst4:"4) Un error te quita una vida (salvo en Infinito).", inst5:"En 3×3 también puedes usar el teclado numérico: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.",
+          continueOnce:"Continuar (‑50 pts)", replaySeq:"Mostrar última secuencia"
+        },
+        "bg-BG": {
+          title:"Предизвик за паметта", start:"Старт", options:"Настройки", leaderboard:"Класация", instructions:"Инструкции", quit:"Изход",
+          gridSize:"Размер на решетката", seqGrowth:"Ръст на последователността", displaySpeed:"Скорост на поле", memorization:"Пауза за запаметяване",
+          livesMode:"Животи", dailyChallenge:"Ежедневно предизвикателство", cbMode:"Режим за далтонисти", theme:"Тема", language:"Език",
+          gridEasy:"Лесно 3x3", gridMed:"Средно 4x4", gridHard:"Трудно 5x5", gridExp:"Експерт 6x6",
+          beginner:"Начинаещ (старт 2, +1)", intermediate:"Средно ниво (старт 3, +2)", advanced:"Напреднало (старт 4, +3)", insane:"Лудо (случайно +2 до +4)",
+          slow:"Бавно 1.5s", normal:"Нормално 1s", fast:"Бързо 0.7s", extreme:"Екстремно 0.4s",
+          memEasy:"Лесно 3s", memMed:"Средно 2s", memHard:"Трудно 1s", memUltra:"Много кратко 0.25s",
+          standardLives:"Стандарт 3 живота", hardcore:"Едно живот", endless:"Безкрайно (до грешка)",
+          off:"Изключено", on:"Включено", highContrast:"Висок контраст",
+          classic:"Класическа", neon:"Неон", sunset:"Залез", mono:"Моно",
+          backMenu:"Назад към менюто", savedForNext:"Изборите се запазват за следващата игра.", save:"Запази",
+          name:"Име", score:"Резултат", grid:"Решетка", mode:"Режим", date:"Дата", clear:"Изчисти",
+          pause:"Пауза", menu:"Меню", startGame:"Старт на играта", restart:"Рестарт",
+          saveScore:"Запази резултата", yourScore:"Твоят резултат", skip:"Пропусни",
+          tip:"Съвет: натисни Старт за да се покаже последователността. Повтори като цъкаш полетата по ред.",
+          ready:"Готово", showing:"Показване на последователността", yourTurn:"Ти си на ход", tryAgain:"Опитай пак", gameOver:"Край на играта", starting:"Стартиране",
+          hint:"Подсказка", hintUsed:"Използвана подсказка", noHints:"Няма повече подсказки",
+          inst1:"1) Наблюдавай осветените полета по ред.", inst2:"2) След паузата, натисни същите полета в същия ред.", inst3:"3) Всяка рунда увеличава последователността.", inst4:"4) Грешка струва един живот (освен в Безкрайно).", inst5:"При 3×3 може да ползваш нъмпад: 7‑8‑9 / 4‑5‑6 / 1‑2‑3.",
+          continueOnce:"Продължи (‑50 т.)", replaySeq:"Покажи последната последователност"
+        }
+      };
+
+      // i18n apply
+      function applyLang(lang){
+        const strings = STR[lang] || STR["en-UK"];
+        document.querySelectorAll('[data-i18n]').forEach(el=>{
+          const key = el.getAttribute('data-i18n');
+          if(strings[key]) el.textContent = strings[key];
+        });
+        document.getElementById('tipText').textContent = strings.tip;
+        document.getElementById('titleText').textContent = strings.title;
+        updateHUD();
+      }
+
+      // sections
+      const menuUI = document.getElementById('menuUI');
+      const optionsUI = document.getElementById('optionsUI');
+      const instructionsUI = document.getElementById('instructionsUI');
+      const leaderboardUI = document.getElementById('leaderboardUI');
+      const gameUI = document.getElementById('gameUI');
+
+      // menu buttons
+      const btnStart = document.getElementById('btnStart');
+      const btnOptions = document.getElementById('btnOptions');
+      const btnLeaderboard = document.getElementById('btnLeaderboard');
+      const btnInstructions = document.getElementById('btnInstructions');
+      const btnQuit = document.getElementById('btnQuit');
+      const btnOptionsBack = document.getElementById('btnOptionsBack');
+      const btnSaveOptions = document.getElementById('btnSaveOptions');
+      const btnLeaderboardBack = document.getElementById('btnLeaderboardBack');
+      const btnInstructionsBack = document.getElementById('btnInstructionsBack');
+      const btnGameBack = document.getElementById('btnGameBack');
+
+      // game elements
+      const gridEl = document.getElementById('grid');
+      const startBtn = document.getElementById('startBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const hintBtn = document.getElementById('hintBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const message = document.getElementById('message');
+      const roundBadge = document.getElementById('round');
+      const scoreBadge = document.getElementById('score');
+      const livesBadge = document.getElementById('lives');
+      const modeBadge = document.getElementById('modeBadge');
+      const toastEl = document.getElementById('toast');
+      const progressBar = document.getElementById('progressBar');
+
+      // options
+      const gridSizeSel = document.getElementById('gridSize');
+      const diffSel = document.getElementById('difficulty');
+      const speedSel = document.getElementById('speed');
+      const memorizeSel = document.getElementById('memorize');
+      const livesSel = document.getElementById('livesMode');
+      const dailySel = document.getElementById('dailyMode');
+      const cbSel = document.getElementById('cbMode');
+      const themeSel = document.getElementById('themeSel');
+      const langSel = document.getElementById('langSel');
+
+      // leaderboard
+      const lbBody = document.getElementById('lbBody');
+      const clearLbBtn = document.getElementById('clearLb');
+
+      // dialogs
+      const saveDialog = document.getElementById('saveDialog');
+      const dlgScore = document.getElementById('dlgScore');
+      const playerNameInput = document.getElementById('playerName');
+      const gameOverDialog = document.getElementById('gameOverDialog');
+      const continueBtn = document.getElementById('continueBtn');
+      const replayBtn = document.getElementById('replayBtn');
+      const goMenuBtn = document.getElementById('goMenuBtn');
+      const statsLine = document.getElementById('statsLine');
+
+      // state
+      let gridSize = 3, tileCount = 9, sequence = [], playIndex = 0, acceptingInput = false, roundNum = 0, score = 0, lives = 3, endless=false;
+      let displayMs = 1000, pauseAfterMs = 250, seqStart = 2, seqIncrementMode='beginner', isPlayingBack=false, savedThisGame=false, paused=false;
+      let perfectStreak = 0, hintsLeft = 3, bestCombo = 0, clicksThisRound = 0, continued = false;
+      let lastSequenceSnapshot = [];
+
+      // helpers
+      function show(el){ el.style.display='block'; }
+      function hide(el){ el.style.display='none'; }
+      function goMenu(){ show(menuUI); hide(optionsUI); hide(instructionsUI); hide(gameUI); hide(leaderboardUI); }
+      function goOptions(){ hide(menuUI); show(optionsUI); }
+      function goLeaderboard(){ hide(menuUI); show(leaderboardUI); renderLB(); }
+      function goInstructions(){ hide(menuUI); show(instructionsUI); }
+      function goGame(){ hide(menuUI); show(gameUI); }
+      function toast(msg){ toastEl.textContent=msg; toastEl.style.transition='opacity .2s'; toastEl.style.opacity=1; setTimeout(()=> toastEl.style.opacity=0, 900); }
+      function vibrate(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch{} }
+      function updateHUD(){
+        const s = STR[langSel.value] || STR["en-UK"];
+        roundBadge.querySelector('strong').textContent = String(roundNum);
+        scoreBadge.querySelector('strong').textContent = String(score);
+        livesBadge.querySelector('strong').textContent = endless ? '∞' : String(lives);
+        // difficulty badge
+        const modeText = { beginner: s.beginner, intermediate: s.intermediate, advanced: s.advanced, insane: s.insane }[diffSel.value];
+        modeBadge.textContent = modeText ? modeText.split('(')[0].trim() : diffSel.value;
+        modeBadge.className = 'mode ' + (diffSel.value==='beginner' ? 'easy' : diffSel.value==='intermediate' ? 'medium' : 'hard');
+      }
+      function disableGrid(d){ gridEl.querySelectorAll('.cell').forEach(c=> c.disabled=d); }
+      function setProgress(pct){ progressBar.style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+
+      // UI wiring
+      btnStart.addEventListener('click', ()=>{ goGame(); });
+      btnOptions.addEventListener('click', goOptions);
+      btnLeaderboard.addEventListener('click', goLeaderboard);
+      btnInstructions.addEventListener('click', goInstructions);
+      btnOptionsBack.addEventListener('click', goMenu);
+      btnLeaderboardBack.addEventListener('click', goMenu);
+      btnInstructionsBack.addEventListener('click', goMenu);
+      btnGameBack.addEventListener('click', goMenu);
+      btnQuit.addEventListener('click', ()=>{ alert('Thanks for playing!'); });
+
+      // Save Options
+      btnSaveOptions.addEventListener('click', ()=>{
+        storage.set('mc.gridSize', gridSizeSel.value);
+        storage.set('mc.difficulty', diffSel.value);
+        storage.set('mc.speed', speedSel.value);
+        storage.set('mc.memorize', memorizeSel.value);
+        storage.set('mc.lives', livesSel.value);
+        storage.set('mc.daily', dailySel.value);
+        storage.set('mc.cb', cbSel.value);
+        storage.set('mc.theme', themeSel.value);
+        storage.set('mc.lang', langSel.value);
+        applyTheme(themeSel.value);
+        document.documentElement.classList.toggle('cb-high', cbSel.value==='1');
+        applyLang(langSel.value);
+        toast(STR[langSel.value].save);
+      });
+
+      // load saved options
+      function loadSaved(){
+        const v = (k, fallback) => storage.get(k) ?? fallback;
+        gridSizeSel.value = v('mc.gridSize', gridSizeSel.value);
+        diffSel.value = v('mc.difficulty', diffSel.value);
+        speedSel.value = v('mc.speed', speedSel.value);
+        memorizeSel.value = v('mc.memorize', memorizeSel.value);
+        livesSel.value = v('mc.lives', livesSel.value);
+        dailySel.value = v('mc.daily', dailySel.value);
+        cbSel.value = v('mc.cb', cbSel.value);
+        themeSel.value = v('mc.theme', themeSel.value);
+        langSel.value = v('mc.lang', 'en-UK');
+        applyTheme(themeSel.value);
+        document.documentElement.classList.toggle('cb-high', cbSel.value==='1');
+        applyLang(langSel.value);
+      }
+
+      // theme
+      function applyTheme(t){
+        const r = document.documentElement.style;
+        if(t==='neon'){ r.setProperty('--bg','#0b1020'); r.setProperty('--accent','#39ff88'); r.setProperty('--accent2','#8affc1'); }
+        else if(t==='sunset'){ r.setProperty('--bg','#1b1326'); r.setProperty('--accent','#ff7a59'); r.setProperty('--accent2','#ffd08a'); }
+        else if(t==='mono'){ r.setProperty('--bg','#111'); r.setProperty('--accent','#ddd'); r.setProperty('--accent2','#aaa'); }
+        else { r.setProperty('--bg','#192b37'); r.setProperty('--accent','#ff5640'); r.setProperty('--accent2','#ffa394'); }
+      }
+
+      // language live
+      langSel.addEventListener('change', ()=> applyLang(langSel.value));
+
+      // Leaderboard
+      const LB_KEY = 'memoryChallenge.leaderboard.v1';
+      function getLB(){ try{return JSON.parse(storage.get(LB_KEY))||[]}catch{return[]} }
+      function setLB(a){ storage.set(LB_KEY, JSON.stringify(a)); }
+      function upsertScore(entry){ const list=getLB(); list.push(entry); const best=new Map(); for(const e of list){ const p=best.get(e.name); if(!p||e.score>p.score) best.set(e.name,e); } const merged=Array.from(best.values()).sort((a,b)=> b.score-a.score || a.date.localeCompare(b.date)).slice(0,10); setLB(merged); renderLB(); }
+      function renderLB(){ const list=getLB(); lbBody.innerHTML=''; list.forEach((e,i)=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td>${i+1}</td><td>${e.name}</td><td>${e.score}</td><td>${e.grid}x${e.grid}</td><td>${e.mode}</td><td>${new Date(e.date).toLocaleDateString()}</td>`; lbBody.appendChild(tr); }); }
+      clearLbBtn.addEventListener('click', ()=>{ if(confirm('Clear all leaderboard scores?')){ setLB([]); renderLB(); } });
+
+      // Core game
+      function buildGrid(n){
+        gridEl.innerHTML=''; gridEl.style.gridTemplateColumns=`repeat(${n},1fr)`;
+        const frag=document.createDocumentFragment();
+        for(let i=0;i<n*n;i++){
+          const b=document.createElement('button');
+          b.className='cell'; b.type='button'; b.dataset.index=String(i);
+          // Show indices for 3x3 numpad mapping
+          if(n===3){ const label=[7,8,9,4,5,6,1,2,3][i]; b.textContent = label; }
+          b.addEventListener('click', onCellClick); frag.appendChild(b);
+        }
+        gridEl.appendChild(frag); tileCount=n*n;
+      }
+
+      async function rafWait(ms){ const t=performance.now(); while(performance.now()-t < ms){ if(paused){ await new Promise(r=>requestAnimationFrame(r)); } else { await new Promise(r=>requestAnimationFrame(r)); } } }
+      async function flash(index){ const cell = gridEl.querySelector(`.cell[data-index="${index}"]`); if(!cell) return; cell.classList.add('active'); await rafWait(displayMs); cell.classList.remove('active'); await rafWait(120); }
+      async function playback(){ isPlayingBack=true; message.textContent = STR[langSel.value].showing; acceptingInput=false; disableGrid(true); setProgress(0); for(const idx of sequence){ await flash(idx); } await rafWait(parseInt(memorizeSel.value,10)); message.textContent = STR[langSel.value].yourTurn; acceptingInput=true; disableGrid(false); playIndex=0; clicksThisRound=0; setProgress(0); isPlayingBack=false; }
+
+      function nextIncrement(){ switch(diffSel.value){ case 'beginner': return 1; case 'intermediate': return 2; case 'advanced': return 3; case 'insane': return 2+Math.floor(Math.random()*3); default: return 1; } }
+      function initDifficulty(mode){ if(mode==='beginner') seqStart=2; else if(mode==='intermediate') seqStart=3; else if(mode==='advanced') seqStart=4; else if(mode==='insane') seqStart=3; }
+      function resetState(){ sequence=[]; playIndex=0; acceptingInput=false; roundNum=0; score=0; isPlayingBack=false; savedThisGame=false; perfectStreak=0; bestCombo=0; clicksThisRound=0; hintsLeft=3; continued=false; setProgress(0); updateHUD(); }
+      function extendSequence(len){ for(let i=0;i<len;i++) sequence.push(Math.floor(Math.random()*tileCount)); }
+
+      async function startGame(){
+        gridSize = parseInt(gridSizeSel.value,10); buildGrid(gridSize);
+        displayMs = parseInt(speedSel.value,10);
+        const lv = livesSel.value; endless = (lv==='endless'); lives = endless?1:parseInt(lv,10);
+        initDifficulty(diffSel.value);
+        resetState(); roundNum=1; message.textContent=STR[langSel.value].starting; extendSequence(seqStart); updateHUD(); lastSequenceSnapshot = sequence.slice(); await playback();
+      }
+      startBtn.addEventListener('click', ()=>{ if(isPlayingBack) return; startGame(); });
+      restartBtn.addEventListener('click', ()=>{ if(isPlayingBack) return; startGame(); });
+      pauseBtn.addEventListener('click', ()=>{ paused=!paused; message.textContent = paused ? STR[langSel.value].pause : STR[langSel.value].ready; });
+
+      async function nextRound(){ roundNum++; const inc=nextIncrement(); extendSequence(inc); updateHUD(); await rafWait(250); lastSequenceSnapshot = sequence.slice(); await playback(); toast('Round clear!'); }
+      function mark(cell, ok){ cell.classList.remove('wrong','correct'); cell.classList.add(ok?'correct':'wrong'); setTimeout(()=> cell.classList.remove('wrong','correct'), 300); }
+      async function handleMistake(cell){ mark(cell,false); vibrate([30,40,30]); document.querySelector('.wrap').classList.add('shake'); setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'),200); acceptingInput=false; perfectStreak=0; displayMs=Math.min(1500,displayMs+100); if(endless){ gameOver(); return; } lives--; updateHUD(); if(lives<=0){ gameOver(); } else { message.textContent=STR[langSel.value].tryAgain; await rafWait(300); await playback(); } }
+      async function handleCorrect(cell){ mark(cell,true); playIndex++; clicksThisRound++; bestCombo = Math.max(bestCombo, clicksThisRound); score += 10; updateHUD(); setProgress( (playIndex/sequence.length)*100 ); if(playIndex===sequence.length){ perfectStreak++; if(perfectStreak>=3){ displayMs=Math.max(250,displayMs-50); perfectStreak=0; } acceptingInput=false; await rafWait(300); await nextRound(); } }
+      function onCellClick(e){ if(!acceptingInput || isPlayingBack) return; const idx=parseInt(e.currentTarget.dataset.index,10); const expected=sequence[playIndex]; if(idx===expected){ handleCorrect(e.currentTarget); } else { handleMistake(e.currentTarget); } }
+
+      // Keyboard: digits + numpad (3x3 numpad layout)
+      const NP_MAP = { '1':6,'2':7,'3':8,'4':3,'5':4,'6':5,'7':0,'8':1,'9':2 };
+      document.addEventListener('keydown', (e)=>{
+        if(!acceptingInput || isPlayingBack) return;
+        const key = e.key;
+        if(gridSize===3 && /^[1-9]$/.test(key)){
+          const idx = NP_MAP[key];
+          const cell = gridEl.querySelector(`.cell[data-index="${idx}"]`);
+          if(cell){ cell.click(); e.preventDefault(); }
+        } else {
+          // fallback: 1..(n*n) in row order
+          const n = parseInt(key,10);
+          if(Number.isInteger(n) && n>=1 && n<=tileCount){
+            const cell = gridEl.querySelector(`.cell[data-index="${n-1}"]`);
+            if(cell){ cell.click(); e.preventDefault(); }
+          }
+        }
+      });
+
+      // Hint
+      hintBtn.addEventListener('click', async ()=>{
+        if(isPlayingBack || !sequence.length) return;
+        const nextIdx = sequence[playIndex]; const cell = gridEl.querySelector(`.cell[data-index="${nextIdx}"]`); if(!cell) return;
+        acceptingInput=false; cell.classList.add('active'); await rafWait(300); cell.classList.remove('active'); await rafWait(80); acceptingInput=true; toast(STR[langSel.value].hintUsed);
+      });
+
+      // Game over + continue once
+      function openGameOver(){
+        const s = `Round ${roundNum} · Best combo ${bestCombo} · Hints used ${Math.max(0,3-hintsLeft)}`;
+        statsLine.textContent = s;
+        if(typeof gameOverDialog.showModal==='function') gameOverDialog.showModal(); else gameOverDialog.setAttribute('open','');
+      }
+      function gameOver(){ message.textContent=STR[langSel.value].gameOver; acceptingInput=false; disableGrid(true); if(score>0 && !savedThisGame){ dlgScore.textContent=String(score); if(typeof saveDialog.showModal==='function') saveDialog.showModal(); else saveDialog.setAttribute('open',''); } openGameOver(); }
+      continueBtn.addEventListener('click', (ev)=>{
+        if(continued){ ev.preventDefault(); toast('Already continued once'); return; }
+        continued = true; score = Math.max(0, score - 50); lives = 1; updateHUD(); gameOverDialog.close('continue'); // resume same round/sequence
+        playback(); // replay sequence then allow input
+      });
+      replayBtn.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        if(!lastSequenceSnapshot.length) return;
+        // play last snapshot without changing state
+        (async()=>{
+          isPlayingBack=true; disableGrid(true); message.textContent = STR[langSel.value].showing;
+          for(const idx of lastSequenceSnapshot){ await flash(idx); }
+          await rafWait(200); isPlayingBack=false; if(acceptingInput){ disableGrid(false); message.textContent = STR[langSel.value].yourTurn; }
+        })();
+      });
+      goMenuBtn.addEventListener('click', ()=>{ gameOverDialog.close('menu'); goMenu(); });
+
+      // Save score dialog
+      saveDialog.addEventListener('close', ()=>{
+        if(saveDialog.returnValue==='save'){
+          const name = (playerNameInput.value||'Player').slice(0,24);
+          storage.set('memoryChallenge.playerName', name);
+          upsertScore({ name, score, grid:gridSize, mode:diffSel.value, date:new Date().toISOString() });
+          savedThisGame=true;
+        }
+      });
+
+      // init
+      function init(){
+        loadSaved();
+        goMenu();
+        buildGrid(gridSize);
+        message.textContent = STR[langSel.value].ready;
+        updateHUD();
+        renderLB();
+      }
+      init();
+
+    }catch(err){
+      alert('Init error: ' + (err?.message || err));
+      console.error(err);
+    }
+  })();
+  </script>
+</body>
+</html>
