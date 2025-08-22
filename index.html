@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory challenge!</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#192b37">
+  <!-- Optional gamey font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap">
+  <style>
+    :root{
+      --bg:#192b37;
+      --accent:#ff5640;
+      --accent2:#ffa394;
+      --panel:#0f1b23;
+      --panel2:#122430;
+      --good:#22c55e;
+      --bad:#ef4444;
+      --text:#e5e7eb;
+      --muted:#a3aed0;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;
+      background: var(--bg);
+      color:var(--text);
+      display:flex; min-height:100dvh; align-items:center; justify-content:center;
+      overflow-x:hidden;
+    }
+    /* Animated nebula background */
+    body::before{
+      content:""; position:fixed; inset:-20%;
+      background:
+        radial-gradient(60vw 60vw at 10% 20%, rgba(255,86,64,.07), transparent 60%),
+        radial-gradient(70vw 70vw at 90% 10%, rgba(255,163,148,.05), transparent 60%),
+        radial-gradient(50vw 50vw at 30% 90%, rgba(255,86,64,.04), transparent 60%);
+      filter: blur(30px);
+      animation: drift 40s linear infinite alternate;
+      z-index:-1;
+    }
+    @keyframes drift{
+      0% { transform: translate3d(0,0,0) scale(1); }
+      100%{ transform: translate3d(-2%,2%,0) scale(1.03); }
+    }
+
+    .wrap{width:min(1100px,95vw);}    
+
+    /* ---------- Compact Game Menu ---------- */
+    .menu-card{
+      width:min(420px, 92vw);
+      border-radius:18px;
+      padding:16px 14px 20px;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 18px 40px rgba(0,0,0,.4);
+    }
+    .menu-title{
+      display:flex; align-items:center; gap:10px;
+      margin:2px 6px 12px;
+      font-size:20px;
+      font-weight:800;
+      letter-spacing:.4px;
+      text-shadow:0 1px 0 rgba(0,0,0,.25);
+      font-family:"Chakra Petch", system-ui, sans-serif;
+    }
+    .menu-title img{ width:36px; height:36px; border-radius:10px; object-fit:cover; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+    .menu-list{display:flex; flex-direction:column; gap:10px; padding:4px}
+    .menu-btn{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.1);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 85%, #fff 0%), color-mix(in srgb, var(--accent2) 70%, #fff 0%));
+      color:#0b1020; font-weight:800; letter-spacing:.2px;
+      cursor:pointer; outline:none;
+      box-shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 22px rgba(0,0,0,.35);
+      transform: translateY(0);
+      transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+      font-family:"Chakra Petch", system-ui, sans-serif;
+    }
+    .menu-btn:hover{ transform: translateY(-1px); filter:brightness(1.02); }
+    .menu-btn:active{ transform: translateY(1px); box-shadow: 0 4px 0 rgba(0,0,0,.25) inset; }
+    .menu-left{display:flex; align-items:center; gap:10px}
+    .menu-icon{
+      width:28px; height:28px; border-radius:10px;
+      background:#0b1020; color:var(--accent);
+      display:grid; place-items:center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+    }
+    .menu-chevron{opacity:.75}
+
+    /* ---------- Shared controls + game styles ---------- */
+    .controls{
+      display:grid; grid-template-columns: repeat(2, minmax(160px,1fr)); gap:10px; background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+      padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:14px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .control{display:flex; flex-direction:column; gap:6px}
+    .control label{font-size:12px; color:var(--muted)}
+    select, button, input[type="text"]{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#0f1530; color:var(--text);
+      outline:none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .primary{background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0b1020; font-weight:800; border:none; font-family:"Chakra Petch", system-ui, sans-serif;}
+    .ghost{background:transparent; border:1px solid rgba(255,255,255,.2); color:var(--text); border-radius:10px; padding:10px 12px}
+    .panel{background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%); padding:16px; border-radius:14px; border:1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.35);}
+    .hud{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0}
+    .badge{padding:6px 10px; border-radius:999px; background:#0f1530; border:1px solid rgba(255,255,255,.12); font-size:12px}
+    .grid-wrap{display:grid; place-items:center; margin-top:14px}
+    .grid{display:grid; gap:8px; background:#0f1530; padding:10px; border-radius:16px; border:1px solid rgba(255,255,255,.08); box-shadow: 0 10px 35px rgba(0,0,0,.45)}
+    .cell{
+      width:80px; aspect-ratio:1; border-radius:12px; background:#1a2746; border:1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      transition: transform .1s ease, background .12s ease, box-shadow .12s ease, filter .12s ease;
+      cursor:pointer; position:relative; overflow:hidden;
+      transform-style:preserve-3d; perspective:800px;
+    }
+    .cell::after{content:""; position:absolute; inset:0; opacity:0; background: radial-gradient(200px 200px at 50% 50%, color-mix(in srgb, var(--accent) 70%, white 10%) 0%, transparent 60%); transition:opacity .12s ease}
+    .cell:hover{transform:translateY(-1px)}
+    .cell.active{background:color-mix(in srgb, var(--accent) 80%, #131a3b 20%); box-shadow:0 0 22px color-mix(in srgb, var(--accent) 50%, #000 50%); transform: rotateY(10deg) translateY(-2px);}
+    .cell.active::after{opacity:.55}
+    .cell.correct{outline:2px solid var(--good)}
+    .cell.wrong{outline:2px solid var(--bad)}
+    .msg{margin-top:10px; color:#c7d2fe; min-height:22px}
+    .footer{opacity:.75; font-size:12px; margin-top:10px}
+    .spacer{height:8px}
+    @media (max-width:750px){
+      .cell{width:64px}
+    }
+    /* Leaderboard */
+    .leaderboard{margin-top:16px; background:linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%); padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.08)}
+    .leaderboard h2{font-size:18px; margin:0 0 8px 0}
+    .lb-controls{display:flex; gap:8px; align-items:center; margin-bottom:8px}
+    table{width:100%; border-collapse:collapse}
+    thead th{font-size:12px; text-align:left; color:#a3aed0; border-bottom:1px solid rgba(255,255,255,.12); padding:6px}
+    tbody td{padding:6px; border-bottom:1px dashed rgba(255,255,255,.06); font-size:14px}
+    tbody tr:nth-child(1) td{font-weight:700}
+
+    /* Save Score dialog */
+    dialog{border:none; border-radius:16px; padding:0; width:min(420px,90vw); background:#0f1530; color:var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.6);}
+    .dlg{padding:16px}
+    .dlg h3{margin:0 0 8px 0}
+    .dlg p{margin:0 0 12px 0; color:#a3aed0}
+    .dlg .row{display:flex; gap:8px}
+    .dlg .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:12px}
+
+    /* Effects */
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(4px)} 75%{transform:translateX(-4px)} }
+    .shake { animation: shake 180ms ease; }
+
+    /* Toast */
+    .toast{
+      position:fixed; left:50%; top:10%; transform:translateX(-50%);
+      background:#0f1530; border:1px solid rgba(255,255,255,.15);
+      padding:10px 14px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+      opacity:0; pointer-events:none; color:#e5e7eb; font-weight:700; font-family:"Chakra Petch", system-ui, sans-serif;
+    }
+
+    /* Color-blind high contrast */
+    .cb-high .cell.active{ background:#ffd400; box-shadow:0 0 22px #ffd400; }
+  </style>
+
+  <!-- Sounds -->
+  <audio id="snd-ok" src="https://cdn.jsdelivr.net/gh/naptha/tinyfiles@main/click-ok.mp3" preload="auto"></audio>
+  <audio id="snd-err" src="https://cdn.jsdelivr.net/gh/naptha/tinyfiles@main/click-bad.mp3" preload="auto"></audio>
+  <audio id="snd-step" src="https://cdn.jsdelivr.net/gh/naptha/tinyfiles@main/tick.mp3" preload="auto"></audio>
+</head>
+<body>
+  <div class="wrap">
+    <!-- MENU UI -->
+    <section id="menuUI" class="menu-card" style="display:block;">
+      <div class="menu-title">
+        <img src="logo.png" alt="Memory challenge logo" />
+        Memory challenge!
+      </div>
+      <div class="menu-list">
+        <button class="menu-btn" id="btnStart"><span class="menu-left"><span class="menu-icon">▶</span> Start</span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnOptions"><span class="menu-left"><span class="menu-icon">⚙</span> Options</span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnInstructions"><span class="menu-left"><span class="menu-icon">?</span> Instructions</span><span class="menu-chevron">›</span></button>
+        <button class="menu-btn" id="btnQuit"><span class="menu-left"><span class="menu-icon">✖</span> Quit</span><span class="menu-chevron">›</span></button>
+      </div>
+    </section>
+
+    <!-- OPTIONS UI -->
+    <section id="optionsUI" class="panel" style="display:none; width:min(760px,95vw);">
+      <h2 style="margin:0 0 10px 0; font-family:'Chakra Petch',system-ui,sans-serif;">Options</h2>
+      <div class="controls" style="margin-bottom:12px;">
+        <div class="control">
+          <label for="gridSize">Grid size</label>
+          <select id="gridSize">
+            <option value="3">Easy 3x3</option>
+            <option value="4">Medium 4x4</option>
+            <option value="5">Hard 5x5</option>
+            <option value="6">Expert 6x6</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="difficulty">Sequence growth</label>
+          <select id="difficulty">
+            <option value="beginner">Beginner (start 2, +1)</option>
+            <option value="intermediate">Intermediate (start 3, +2)</option>
+            <option value="advanced">Advanced (start 4, +3)</option>
+            <option value="insane">Insane (random +2 to +4)</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="speed">Display speed per tile</label>
+          <select id="speed">
+            <option value="1500">Slow 1.5s</option>
+            <option value="1000" selected>Normal 1s</option>
+            <option value="700">Fast 0.7s</option>
+            <option value="400">Extreme 0.4s</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="memorize">Memorization pause</label>
+          <select id="memorize">
+            <option value="3000">Easy 3s</option>
+            <option value="2000" selected>Medium 2s</option>
+            <option value="1000">Hard 1s</option>
+            <option value="500">Ultra 0.5s</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="livesMode">Lives mode</label>
+          <select id="livesMode">
+            <option value="3" selected>Standard 3 lives</option>
+            <option value="1">Hardcore 1 life</option>
+            <option value="endless">Endless (until mistake)</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="cbMode">Color‑blind mode</label>
+          <select id="cbMode">
+            <option value="0" selected>Off</option>
+            <option value="1">High contrast</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>&nbsp;</label>
+          <button id="btnOptionsBack" class="ghost">Back to Menu</button>
+        </div>
+      </div>
+      <div style="font-size:12px;opacity:.85">Your selections are saved for the next game.</div>
+    </section>
+
+    <!-- INSTRUCTIONS UI -->
+    <section id="instructionsUI" class="panel" style="display:none; width:min(640px,95vw);">
+      <h2 style="margin:0 0 10px 0; font-family:'Chakra Petch',system-ui,sans-serif;">How to play</h2>
+      <p style="margin:0 0 10px 0; color:#a3aed0;">
+        1) Watch the highlighted squares in order. <br/>
+        2) After the pause, click the same squares in the same order. <br/>
+        3) Each round increases the sequence length (depends on difficulty). <br/>
+        4) A mistake costs a life (unless Endless). The game ends when lives reach zero.
+      </p>
+      <div style="font-size:12px; opacity:.8;">Tip: Use Options to set grid size, speed, and more.</div>
+      <div class="spacer"></div>
+      <div><button id="btnInstructionsBack" class="ghost">Back to Menu</button></div>
+    </section>
+
+    <!-- GAME UI -->
+    <section id="gameUI" style="display:none;">
+      <div class="panel" style="width:min(980px,95vw);">
+        <div class="hud">
+          <img src="logo.png" alt="" style="width:28px;height:28px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.35);" />
+          <span class="badge" id="round">Round: 0</span>
+          <span class="badge" id="score">Score: 0</span>
+          <span class="badge" id="lives">Lives: 0</span>
+          <span class="badge" id="status">Status: Ready</span>
+          <span style="flex:1"></span>
+          <button id="btnGameBack" class="ghost">Menu</button>
+        </div>
+
+        <section class="grid-wrap">
+          <div id="grid" class="grid" role="grid" aria-label="Game grid"></div>
+          <div class="msg" id="message"></div>
+          <div class="footer">Tip: press Start to show the sequence. Wait for the pause, then repeat by clicking tiles in order.</div>
+        </section>
+
+        <div class="spacer"></div>
+
+        <section class="leaderboard" aria-live="polite">
+          <h2 style="font-family:'Chakra Petch',system-ui,sans-serif;">🏆 Leaderboard (Top 10)</h2>
+          <div class="lb-controls">
+            <button id="clearLb" class="ghost" title="Clear all scores">Clear</button>
+            <button id="startBtn" class="primary" style="margin-left:auto;">Start game</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Grid</th>
+                <th>Mode</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="lbBody"></tbody>
+          </table>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Save Score Dialog -->
+  <dialog id="saveDialog">
+    <form method="dialog" class="dlg" id="saveForm">
+      <h3>Save your score</h3>
+      <p>Your score: <strong id="dlgScore">0</strong></p>
+      <label for="playerName">Name</label>
+      <div class="row">
+        <input type="text" id="playerName" name="playerName" placeholder="Type your name" required maxlength="24" />
+        <button class="primary" value="save">Save</button>
+        <button class="ghost" value="cancel">Skip</button>
+      </div>
+      <div class="actions"></div>
+    </form>
+  </dialog>
+
+  <script>
+  (() => {
+    // PWA registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      });
+    }
+
+    // Sections
+    const menuUI = document.getElementById('menuUI');
+    const optionsUI = document.getElementById('optionsUI');
+    const instructionsUI = document.getElementById('instructionsUI');
+    const gameUI = document.getElementById('gameUI');
+
+    // Menu buttons
+    const btnStart = document.getElementById('btnStart');
+    const btnOptions = document.getElementById('btnOptions');
+    const btnInstructions = document.getElementById('btnInstructions');
+    const btnQuit = document.getElementById('btnQuit');
+    const btnOptionsBack = document.getElementById('btnOptionsBack');
+    const btnInstructionsBack = document.getElementById('btnInstructionsBack');
+    const btnGameBack = document.getElementById('btnGameBack');
+
+    // Game elements
+    const gridEl = document.getElementById('grid');
+    const startBtn = document.getElementById('startBtn');
+    const message = document.getElementById('message');
+    const roundBadge = document.getElementById('round');
+    const scoreBadge = document.getElementById('score');
+    const livesBadge = document.getElementById('lives');
+    const statusBadge = document.getElementById('status');
+
+    const gridSizeSel = document.getElementById('gridSize');
+    const diffSel = document.getElementById('difficulty');
+    const speedSel = document.getElementById('speed');
+    const memorizeSel = document.getElementById('memorize');
+    const livesSel = document.getElementById('livesMode');
+    const cbMode = document.getElementById('cbMode');
+
+    const lbBody = document.getElementById('lbBody');
+    const clearLbBtn = document.getElementById('clearLb');
+    const saveDialog = document.getElementById('saveDialog');
+    const dlgScore = document.getElementById('dlgScore');
+    const playerNameInput = document.getElementById('playerName');
+    const toastEl = document.getElementById('toast');
+
+    // Sounds
+    const SOK = document.getElementById('snd-ok');
+    const SERR = document.getElementById('snd-err');
+    const SSTEP = document.getElementById('snd-step');
+
+    // Game state
+    let gridSize = 3;
+    let tileCount = gridSize * gridSize;
+    let sequence = [];
+    let playIndex = 0;
+    let acceptingInput = false;
+    let roundNum = 0;
+    let score = 0;
+    let lives = 0;
+    let endless = false;
+    let displayMs = 1000;
+    let pauseAfterMs = 2000;
+    let seqStart = 2; // per difficulty
+    let seqIncrementMode = 'beginner';
+    let isPlayingBack = false;
+    let savedThisGame = false;
+
+    // Leaderboard helpers
+    const LB_KEY = 'memoryChallenge.leaderboard.v1';
+    const NAME_KEY = 'memoryChallenge.playerName';
+
+    function show(el){ el.style.display = 'block'; }
+    function hide(el){ el.style.display = 'none'; }
+    function goMenu(){ show(menuUI); hide(optionsUI); hide(instructionsUI); hide(gameUI); }
+    function goOptions(){ hide(menuUI); show(optionsUI); hide(instructionsUI); hide(gameUI); }
+    function goInstructions(){ hide(menuUI); hide(optionsUI); show(instructionsUI); hide(gameUI); }
+    function goGame(){ hide(menuUI); hide(optionsUI); hide(instructionsUI); show(gameUI); }
+
+    // Menu handlers
+    btnStart.addEventListener('click', () => { goGame(); setStatus('Ready'); setMsg('Configure options, then press Start.'); });
+    btnOptions.addEventListener('click', () => goOptions());
+    btnInstructions.addEventListener('click', () => goInstructions());
+    btnQuit.addEventListener('click', () => {
+      alert('Thanks for playing! You can now close this tab.');
+      try { window.close(); } catch {}
+    });
+    btnOptionsBack.addEventListener('click', () => goMenu());
+    btnInstructionsBack.addEventListener('click', () => goMenu());
+    btnGameBack.addEventListener('click', () => { goMenu(); });
+
+    // Color-blind toggle
+    cbMode.addEventListener('change', (e)=>{
+      document.documentElement.classList.toggle('cb-high', e.target.value==='1');
+    });
+
+    function getLB(){
+      try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch { return []; }
+    }
+    function setLB(arr){ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }
+
+    function upsertScore(entry){
+      const list = getLB();
+      list.push(entry);
+      const bestByName = new Map();
+      for(const e of list){
+        const prev = bestByName.get(e.name);
+        if(!prev || e.score > prev.score){ bestByName.set(e.name, e); }
+      }
+      const merged = Array.from(bestByName.values())
+        .sort((a,b)=> b.score - a.score || a.date.localeCompare(b.date))
+        .slice(0,10);
+      setLB(merged);
+      renderLB();
+    }
+
+    function renderLB(){
+      const list = getLB();
+      lbBody.innerHTML = '';
+      list.forEach((e, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${escapeHtml(e.name)}</td><td>${e.score}</td><td>${e.grid}x${e.grid}</td><td>${e.mode}</td><td>${new Date(e.date).toLocaleDateString()}</td>`;
+        lbBody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[s]));
+    }
+
+    clearLbBtn.addEventListener('click', () => {
+      if(confirm('Clear all leaderboard scores?')){ setLB([]); renderLB(); }
+    });
+
+    function setStatus(text){ statusBadge.textContent = `Status: ${text}`; }
+    function setMsg(text){ message.textContent = text || ''; }
+
+    function buildGrid(n){
+      gridEl.innerHTML = '';
+      gridEl.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+      const frag = document.createDocumentFragment();
+      for(let i=0;i<n*n;i++){
+        const b = document.createElement('button');
+        b.className = 'cell';
+        b.type = 'button';
+        b.setAttribute('aria-label', `Cell ${i+1}`);
+        b.dataset.index = String(i);
+        b.addEventListener('click', onCellClick);
+        frag.appendChild(b);
+      }
+      gridEl.appendChild(frag);
+      tileCount = n*n;
+    }
+
+    const sleep = (ms) => new Promise(r=>setTimeout(r,ms));
+
+    function randInt(max){ return Math.floor(Math.random()*max); }
+
+    function nextIncrement(){
+      switch(seqIncrementMode){
+        case 'beginner': return 1;
+        case 'intermediate': return 2;
+        case 'advanced': return 3;
+        case 'insane': return 2 + randInt(3); // 2..4
+        default: return 1;
+      }
+    }
+
+    function initDifficulty(mode){
+      seqIncrementMode = mode;
+      if(mode === 'beginner') seqStart = 2;
+      else if(mode === 'intermediate') seqStart = 3;
+      else if(mode === 'advanced') seqStart = 4;
+      else if(mode === 'insane') seqStart = 3; // fair start
+    }
+
+    function resetState(){
+      sequence = [];
+      playIndex = 0;
+      acceptingInput = false;
+      roundNum = 0;
+      score = 0;
+      isPlayingBack = false;
+      savedThisGame = false;
+      updateHUD();
+    }
+
+    function updateHUD(){
+      roundBadge.textContent = `Round: ${roundNum}`;
+      scoreBadge.textContent = `Score: ${score}`;
+      livesBadge.textContent = `Lives: ${endless ? '∞' : lives}`;
+    }
+
+    async function flash(index){
+      const cell = gridEl.querySelector(`.cell[data-index="${index}"]`);
+      if(!cell) return;
+      try{ SSTEP.currentTime = 0; SSTEP.play().catch(()=>{}); }catch{}
+      cell.classList.add('active');
+      await sleep(displayMs);
+      cell.classList.remove('active');
+      await sleep(150);
+    }
+
+    async function playback(){
+      isPlayingBack = true;
+      setStatus('Showing sequence');
+      acceptingInput = false;
+      disableGrid(true);
+      for(const idx of sequence){ await flash(idx); }
+      await sleep(pauseAfterMs);
+      setStatus('Your turn');
+      acceptingInput = true;
+      disableGrid(false);
+      playIndex = 0;
+      setMsg('Repeat the sequence.');
+      isPlayingBack = false;
+    }
+
+    function disableGrid(disabled){
+      gridEl.querySelectorAll('.cell').forEach(c => c.disabled = disabled);
+    }
+
+    function extendSequence(len){ for(let i=0;i<len;i++) sequence.push(randInt(tileCount)); }
+
+    async function startGame(){
+      gridSize = parseInt(gridSizeSel.value,10);
+      buildGrid(gridSize);
+      displayMs = parseInt(speedSel.value,10);
+      pauseAfterMs = parseInt(memorizeSel.value,10);
+      const lv = livesSel.value;
+      endless = (lv === 'endless');
+      lives = endless ? 1 : parseInt(lv,10);
+      initDifficulty(diffSel.value);
+
+      resetState();
+      roundNum = 1;
+      setStatus('Starting');
+      setMsg('Watch carefully.');
+      extendSequence(seqStart);
+      updateHUD();
+      await playback();
+    }
+
+    async function nextRound(){
+      roundNum++;
+      const inc = nextIncrement();
+      extendSequence(inc);
+      updateHUD();
+      setStatus('Next round');
+      setMsg('Watch carefully.');
+      await sleep(600);
+      await playback();
+      toast('Round Clear!');
+    }
+
+    function mark(cell, ok){
+      cell.classList.remove('wrong','correct');
+      cell.classList.add(ok ? 'correct' : 'wrong');
+      setTimeout(() => cell.classList.remove('wrong','correct'), 300);
+    }
+
+    function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch{} }
+
+    function burstAt(el, color){
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      const n = 10;
+      for(let i=0;i<n;i++){
+        const p = document.createElement('span');
+        p.style.cssText = `position:fixed; left:${cx}px; top:${cy}px; width:6px; height:6px; border-radius:50%; background:${color}; pointer-events:none; z-index:9999; transform:translate(-50%,-50%);`;
+        document.body.appendChild(p);
+        const ang = (Math.PI*2*i)/n + Math.random()*0.5, dist = 30+Math.random()*30;
+        const tx = Math.cos(ang)*dist, ty = Math.sin(ang)*dist;
+        p.animate([{ transform:`translate(-50%,-50%) translate(0,0)`, opacity:1 },
+                   { transform:`translate(-50%,-50%) translate(${tx}px,${ty}px)`, opacity:0 }],
+                   { duration:500, easing:'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => p.remove();
+      }
+    }
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.style.transition = 'opacity .2s';
+      toastEl.style.opacity = 1;
+      setTimeout(()=> toastEl.style.opacity = 0, 900);
+    }
+
+    async function handleMistake(cell){
+      mark(cell, false);
+      try{ SERR.currentTime=0; SERR.play().catch(()=>{}); }catch{}
+      vibrate([30,40,30]);
+      document.querySelector('.wrap').classList.add('shake');
+      setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'), 200);
+      acceptingInput = false;
+      if(endless){ gameOver(); return; }
+      lives--;
+      updateHUD();
+      if(lives <= 0){ gameOver(); }
+      else {
+        setStatus('Try again');
+        setMsg('Wrong tile. Watch the sequence again.');
+        await sleep(700);
+        await playback();
+      }
+    }
+
+    async function handleCorrect(cell){
+      mark(cell, true);
+      try{ SOK.currentTime=0; SOK.play().catch(()=>{}); }catch{}
+      vibrate([12]);
+      burstAt(cell, getComputedStyle(cell).getPropertyValue('background-color') || '#ff5640');
+      playIndex++;
+      score += 10;
+      updateHUD();
+      if(playIndex === sequence.length){
+        setStatus('Success');
+        setMsg('Great job. Get ready for the next round.');
+        acceptingInput = false;
+        await sleep(800);
+        await nextRound();
+      }
+    }
+
+    function onCellClick(e){
+      const cell = e.currentTarget;
+      if(!acceptingInput || isPlayingBack) return;
+      const idx = parseInt(cell.dataset.index,10);
+      const expected = sequence[playIndex];
+      if(idx === expected){ handleCorrect(cell); }
+      else { handleMistake(cell); }
+    }
+
+    function gameOver(){
+      setStatus('Game over');
+      setMsg('Game over. Press Start to try again.');
+      acceptingInput = false;
+      disableGrid(true);
+      if(score > 0 && !savedThisGame){
+        openSaveDialog();
+      }
+    }
+
+    // Save score dialog logic
+    function openSaveDialog(){
+      dlgScore.textContent = String(score);
+      try { playerNameInput.value = localStorage.getItem(NAME_KEY) || ''; } catch {}
+      if(typeof saveDialog.showModal === 'function') saveDialog.showModal();
+      else saveDialog.setAttribute('open','');
+      playerNameInput.focus();
+    }
+
+    saveDialog.addEventListener('close', () => {
+      const action = saveDialog.returnValue;
+      if(action === 'save'){
+        const name = playerNameInput.value.trim().slice(0,24) || 'Player';
+        try { localStorage.setItem(NAME_KEY, name); } catch {}
+        const entry = { name, score, grid: gridSize, mode: seqIncrementMode, date: new Date().toISOString() };
+        upsertScore(entry);
+        savedThisGame = true;
+      }
+    });
+
+    gridSizeSel.addEventListener('change', () => buildGrid(parseInt(gridSizeSel.value,10)));
+    startBtn.addEventListener('click', () => { if(isPlayingBack) return; startGame(); });
+
+    // Initial UI setup
+    goMenu();
+    buildGrid(gridSize);
+    setMsg('Configure options, then press Start.');
+    setStatus('Ready');
+    renderLB();
+  })();
+  </script>
+</body>
+</html>
